@@ -1,8 +1,8 @@
 import React, { Component, PropTypes } from 'react';
 import { HOC } from 'formsy-react';
-import { default as BaseTypedSelect } from '../TypedSelect';
+import { default as BaseTypedSelect } from './index';
 
-import InputWrapper from './InputWrapper';
+import InputWrapper from '../Forms/InputWrapper';
 
 
 class TypedSelect extends Component {
