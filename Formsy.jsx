@@ -69,11 +69,9 @@ class TypedSelect extends Component {
     };
 
     return (
-      <InputWrapper
-        {...wrapperProps}
+      <div
         className={wrapperClasses}
         id={id}
-        label={label}
       >
 
         <BaseTypedSelect {...inputOpts} />
@@ -84,9 +82,9 @@ class TypedSelect extends Component {
             'This field is required.' : null }
         </div>
 
-      </InputWrapper>
+      </div>
     );
   }
 }
 
-export default HOC(TypedSelect); // eslint-disable-line new-cap
+export default HOC(InputWrapper(TypedSelect)); // eslint-disable-line new-cap
