@@ -1,7 +1,9 @@
 import React, { Component, PropTypes } from 'react';
 import { HOC } from 'formsy-react';
+import { autobind } from 'core-decorators';
 
 import InputWrapper from 'Components/Forms/InputWrapper';
+import FormGroup from 'Components/Forms/FormGroup';
 
 import BaseTypedSelect from './index';
 
@@ -9,84 +11,63 @@ import BaseTypedSelect from './index';
 class TypedSelect extends Component {
 
   static propTypes = {
-    type: PropTypes.string,
-    name: PropTypes.string.isRequired,
-    label: PropTypes.string,
-    placeholder: PropTypes.string,
-    wrapperClasses: PropTypes.string,
     className: PropTypes.string,
-    replaceStatusClass: PropTypes.string,
-    required: PropTypes.bool,
     disabled: PropTypes.bool,
+    formsy: PropTypes.shape({
+      setValue: PropTypes.func,
+    }),
+    label: PropTypes.string,
+    name: PropTypes.string.isRequired,
     onChange: PropTypes.func,
-    setValue: PropTypes.func.isRequired,
-    getValue: PropTypes.func.isRequired,
-    isPristine: PropTypes.func.isRequired,
-    isValid: PropTypes.func.isRequired,
-    getErrorMessage: PropTypes.func.isRequired,
-    showRequired: PropTypes.func.isRequired,
-    async: PropTypes.bool,
-    creatable: PropTypes.bool,
-    loadOptions: PropTypes.func,
-    selectOptions: PropTypes.object,
+    placeholder: PropTypes.string,
     prepValue: PropTypes.func,
+    renderFeedback: PropTypes.func,
+    required: PropTypes.bool,
+    selectOptions: PropTypes.object, // eslint-disable-line react/forbid-prop-types
+    type: PropTypes.string,
   };
 
   static defaultProps = {
-    type: 'text',
-    required: false,
+    className: '',
     disabled: false,
-    onChange: () => {},
+    formsy: {},
+    label: null,
     minimumInput: 0,
+    onChange: () => {},
+    placeholder: '',
     prepValue: v => v,
+    renderFeedback: null,
+    required: false,
+    selectOptions: {},
+    type: 'text',
   };
 
-  constructor(props, context) {
-    super(props, context);
-    this.changeValue = this.changeValue.bind(this);
-  }
-
+  @autobind
   changeValue(v) {
-    const value = this.props.prepValue(v);
-    this.props.setValue(value || '');
-    this.props.onChange(value);
+    const { formsy, onChange, prepValue } = this.props;
+    const { setValue } = formsy;
+    const value = prepValue(v);
+    if (setValue) setValue(value || '');
+    if (onChange) onChange(value);
   }
 
   render() {
-    const { className, wrapperClasses, ...wrapperProps } = this.props;
-    const { type, name, required, disabled, label, selectOptions } = this.props;
-    const id = `id_${name}`;
-    const inputOpts = {
-      id,
-      type,
-      name,
-      required,
-      disabled,
-      value: this.props.getValue(),
-      onChange: this.changeValue,
-      className,
-      ...selectOptions,
-    };
+    const { className, renderFeedback, selectOptions, onChange, ...inputOpts } = this.props;
 
     return (
-      <InputWrapper
-        {...wrapperProps}
-        className={wrapperClasses}
-        id={id}
-        label={label}
-      >
+      <div>
 
-        <BaseTypedSelect {...inputOpts} />
+        <BaseTypedSelect
+          {...inputOpts}
+          {...selectOptions}
+          onChange={this.changeValue}
+        />
 
-        <div className='form-control-feedback feedback help-block'>
-          { this.props.getErrorMessage() }
-          { this.props.showRequired() && !this.props.isPristine() ?
-            'This field is required.' : null }
-        </div>
+        { renderFeedback && renderFeedback() }
 
-      </InputWrapper>
+      </div>
     );
   }
 }
 
-export default HOC(TypedSelect); // eslint-disable-line new-cap
+export default HOC(InputWrapper(TypedSelect, FormGroup)); // eslint-disable-line new-cap
