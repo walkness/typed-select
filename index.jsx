@@ -1,66 +1,85 @@
-import React, { Component, PropTypes } from 'react';
-import Select, { Creatable, Async, AsyncCreatable } from 'react-select';
-import escapeStringRegExp from 'escape-string-regexp';
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+import { autobind } from 'core-decorators';
+
+import InputWrapper from 'AppComponents/Forms/InputWrapper';
+import FormGroup from 'AppComponents/Forms/FormGroup';
+
+import BaseTypedSelect from './BaseInput';
 
 
 class TypedSelect extends Component {
 
   static propTypes = {
     async: PropTypes.bool,
+    className: PropTypes.string,
     creatable: PropTypes.bool,
+    disabled: PropTypes.bool,
+    formsy: PropTypes.shape({
+      setValue: PropTypes.func,
+    }),
+    label: PropTypes.string,
     loadOptions: PropTypes.func,
-    minimumInput: PropTypes.number,
-    extraOptions: PropTypes.array,
+    name: PropTypes.string.isRequired,
+    onChange: PropTypes.func,
+    placeholder: PropTypes.string,
+    prepValue: PropTypes.func,
+    renderFeedback: PropTypes.func,
+    required: PropTypes.bool,
+    selectOptions: PropTypes.object, // eslint-disable-line react/forbid-prop-types
+    showRequired: PropTypes.bool,
+    type: PropTypes.string,
   };
 
   static defaultProps = {
-    type: 'text',
-    required: false,
+    async: false,
+    className: null,
+    creatable: false,
     disabled: false,
-    onChange: () => {},
+    formsy: {},
+    label: null,
+    loadOptions: () => {},
     minimumInput: 0,
-    extraOptions: [],
+    onChange: () => {},
+    placeholder: null,
+    prepValue: v => v,
+    renderFeedback: null,
+    required: false,
+    selectOptions: {},
+    showRequired: false,
+    type: 'text',
   };
 
-  constructor(props, context) {
-    super(props, context);
-    this.completedTerms = {};
-    props.extraOptions.forEach(opt => {
-      this.completedTerms[opt.value] = opt;
-    });
-    this.getOptions = this.getOptions.bind(this);
-  }
-
-  getOptions(input) {
-    const { extraOptions } = this.props;
-    if (input.length < this.props.minimumInput) {
-      return Promise.resolve({ options: [...extraOptions] });
+  @autobind
+  changeValue(v) {
+    const { formsy, onChange } = this.props;
+    const { setValue } = formsy;
+    if (setValue || onChange) {
+      const value = this.props.prepValue(v);
+      if (setValue) setValue(value || '');
+      if (onChange) onChange(value);
     }
-    const completedTerms = Object.keys(this.completedTerms).filter(term => input.startsWith(term));
-    if (completedTerms.length > 0) {
-      const re = new RegExp(`(?:^|\\s)${escapeStringRegExp(input)}`, 'i');
-      const options = this.completedTerms[completedTerms[0]].filter(term => term.label.match(re));
-      return Promise.resolve({ options: [...options, ...extraOptions] });
-    }
-    return this.props.loadOptions(input).then(({ options, completed }) => {
-      if (completed) {
-        this.completedTerms[input.toLowerCase()] = options;
-      }
-      return { options: [...options, ...extraOptions] };
-    });
   }
 
   render() {
-    const { async, creatable, loadOptions, ...inputOpts } = this.props;
-    if (async && creatable) {
-      return <AsyncCreatable {...inputOpts} loadOptions={this.getOptions} />;
-    } else if (async) {
-      return <Async {...inputOpts} loadOptions={this.getOptions} />;
-    } else if (creatable) {
-      return <Creatable {...inputOpts} loadOptions={this.getOptions} />;
-    }
-    return <Select {...inputOpts} loadOptions={this.getOptions} />;
+    const { renderFeedback, selectOptions, placeholder, ...inputOpts } = this.props;
+    const extraProps = {};
+    if (placeholder) extraProps.placeholder = placeholder;
+    return (
+      <div>
+
+        <BaseTypedSelect
+          {...inputOpts}
+          {...selectOptions}
+          {...extraProps}
+          onChange={this.changeValue}
+        />
+
+        { renderFeedback && renderFeedback() }
+
+      </div>
+    );
   }
 }
 
-export default TypedSelect;
+export default InputWrapper(TypedSelect, FormGroup);
