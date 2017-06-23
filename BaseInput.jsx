@@ -4,6 +4,8 @@ import Select, { Creatable, Async, AsyncCreatable } from 'react-select';
 import escapeStringRegExp from 'escape-string-regexp';
 import { autobind } from 'core-decorators';
 
+import 'react-select/dist/react-select.css';
+
 
 class TypedSelect extends Component {
 
