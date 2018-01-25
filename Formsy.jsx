@@ -1,5 +1,5 @@
-import { HOC } from 'formsy-react';
+import { withFormsy } from 'formsy-react';
 
 import TypedSelect from './index';
 
-export default HOC(TypedSelect);
+export default withFormsy(TypedSelect);
